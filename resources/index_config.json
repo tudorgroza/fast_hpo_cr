@@ -1,0 +1,6 @@
+{
+  "ontology" : "/Users/tudor/Work/Data/ontologies/hp_0723.obo",
+  "output" : "/Users/tudor/Work/Data/_experiments_new_hpo_cr_",
+  "resources": "/Users/tudor/Work/Development/code/hpo-cr/resources",
+  "clusters" : "/Users/tudor/Work/Data/hpo_cr/consolidated-clusters"
+}
