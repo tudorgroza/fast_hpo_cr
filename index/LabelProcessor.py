@@ -26,10 +26,12 @@ class LabelProcessor:
         for uri in self.ontoReader.terms:
             if PHENOTYPIC_ABNORMALITY in self.ontoReader.allSuperClasses[uri]:
                 label = self.ontoReader.terms[uri]
-
                 syns = []
                 if uri in self.ontoReader.synonyms:
-                    syns = self.ontoReader.synonyms[uri]
+                    for syn in self.ontoReader.synonyms[uri]:
+                        if len(syn) < 4 and syn.isupper():
+                            continue
+                        syns.append(syn)
                 self.terms[uri] = {
                     'label': label,
                     'syns': syns
@@ -46,6 +48,8 @@ class LabelProcessor:
             for syn in syns:
                 procced = self.processBrackets(syn, isSyn=True)
                 if procced:
+                    if len(syn) < 4 and syn.isupper():
+                        continue
                     newSyns.append(syn)
 
             self.terms[uri] = {

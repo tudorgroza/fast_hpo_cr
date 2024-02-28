@@ -86,23 +86,12 @@ class CorpusEval:
 
     def runFullEval(self):
         lines = []
-        p, r, f1 = self.compareSimple()
-        lines.append(self.toLine('MACRO', p, r, f1))
         p, r, f1 = self.compareComplete()
         lines.append(self.toLine('MICRO', p, r, f1))
+        p, r, f1 = self.compareSimple()
+        lines.append(self.toLine('MACRO', p, r, f1))
         print('\n'.join(lines))
 
     def toLine(self, type, p, r, f1):
         return type + ',' + str(p) + ',' + str(r) + ',' + str(f1)
 
-
-def main():
-#    hpoFile = '/Users/tudor/Work/Data/ontologies/hp_0224.obo'
-    hpoFile = '/Users/tudor/Work/Data/ontologies/hp_0723.obo'
-
-    corpusEval = CorpusEval(hpoFile, corpusHPO=True)
-    corpusEval.runFullEval()
-
-
-if __name__ == '__main__':
-    main()

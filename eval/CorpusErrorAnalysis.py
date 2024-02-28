@@ -76,16 +76,3 @@ class CorpusErrorAnalysis:
             fh.write('\n'.join(notFoundFileLines))
         with open(join(outputFolder, 'incorrect.txt'), 'w') as fh:
             fh.write('\n'.join(incorrectFileLines))
-
-
-def main():
-    hpoFile = '/Users/tudor/Work/Data/ontologies/hp_0224.obo'
-    outputFolder = '/Users/tudor/Work/Data/_experiments_new_hpo_cr_'
-
-    corpusErrorAnalysis = CorpusErrorAnalysis(hpoFile)
-#    corpusErrorAnalysis.serializeCorpus(outputFolder)
-    corpusErrorAnalysis.compare(outputFolder)
-
-
-if __name__ == '__main__':
-    main()

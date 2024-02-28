@@ -13,6 +13,8 @@ def spaceReplace(text):
 
 def cleanToken(token):
     token = token.lower()
+    token = token.replace('"', '')
+    token = token.replace('\'', '')
     token = token.replace(',', '')
     token = token.replace('.', '')
     token = token.replace('>', '')

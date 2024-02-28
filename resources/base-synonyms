@@ -1,8 +1,11 @@
-mutilation, malformation, changes, characteristics, disorder, defect, disability, dysfunction, difficulty, deficit, disturbance, abnormality, anomaly, manifestation, disrupted, difficult, problem, complication, issue, finding, alteration, degradation
+involvement,deformity,mutilation, malformation, changes, characteristics, disorder, defect, disability, dysfunction, difficulty, deficit, disturbance, abnormality, anomaly, manifestation, disrupted, difficult, problem, complication, issue, finding, alteration, degradation
 neonatal, birth, infancy
 edema, swelling
+bifid,duplication
 cutaneous, skin
-outbursts, bursts, paroxysmal
+keratocyst,cyst
+cancer,tumor,neuroma,neurinoma
+outburst, burst
 stereotyped, involuntary
 multiple, numerous, many
 retardation, delay
@@ -42,7 +45,7 @@ disc,disk
 tendinosis,tendinopathy
 abdomen,belly,tummy
 groin,inguinal
-chest,thorax
+chest,thorax,pectoral
 1st,first
 2nd,second
 3rd,third

@@ -1,3 +1,6 @@
+from util.CRConstants import VOID_TOKENS
+
+
 class IndexTerms:
     termsToIndex = {}
     processedTerms = {}
@@ -57,11 +60,21 @@ class IndexTerms:
             'length': len(clusterIds),
             'setLength': len(clusterSet),
             'tokens': clusterIds,
-            'tokenSet': clusterSet
+            'tokenSet': clusterSet,
+            'native': True
         }
 
     def getTermsToIndex(self):
         return self.termsToIndex
+
+    def getVoidTokens(self):
+        voidTokens = []
+        for token in VOID_TOKENS:
+            if token in self.baseClusters:
+                voidTokens.append(self.baseClusters[token])
+            if token in self.newClusterData:
+                voidTokens.append(self.newClusterData[token])
+        return voidTokens
 
     def getNewClusterData(self):
         return self.newClusterData

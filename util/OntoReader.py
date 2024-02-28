@@ -6,6 +6,7 @@ SYN_SCOPE_EXACT = 'EXACT'
 SYN_SCOPE_RELATED = 'RELATED'
 SYN_TYPE_LAYPERSON = 'layperson'
 
+
 class OntoReader:
     ontology = None
 
@@ -75,6 +76,13 @@ class OntoReader:
                 if syn.scope == SYN_SCOPE_RELATED:
                     if not syn.description in syns:
                         syns.append(syn.description)
+
+            if el.xrefs:
+                for xref in el.xrefs:
+                    if xref.description:
+                        if not xref.description in syns:
+                            syns.append(xref.description)
+
             self.synonyms[el.id] = syns
 
             if el.xrefs:
@@ -132,8 +140,9 @@ class OntoReader:
             return self.reverse_alt_ids[hpoId]
         return None
 
+
 def main():
-    ontoReader = OntoReader('/Users/tudor/Work/Data/ontologies/hp_0224.obo')
+    ontoReader = OntoReader('/Users/tudor/Work/Data/ontologies/paper/hp_2019-09.obo')
     print(ontoReader.synonyms['HP:0000078'])
 
 

@@ -1,7 +1,7 @@
 from cr import CRIndexKB, SequenceCache
 from cr.TextSplitter import TextSplitter
 from util import ContentUtil
-from util.CRConstants import NULL
+from util.CRConstants import NULL, NO_SPLIT_TOKENS
 
 
 class TextProcessor:
@@ -31,6 +31,9 @@ class TextProcessor:
     def generateCandidates(self):
         current = []
         for token in self.tokens:
+            #            if token.getToken() == OF or token.getToken() == THE:
+            if token.getToken() in NO_SPLIT_TOKENS:
+                continue
             if token.getClusterId() == NULL:
                 if current:
                     candidateSig = self.toClusterSig(current)
@@ -58,6 +61,14 @@ class TextProcessor:
                 lst = self.candidates[candidateSig]
             lst.append(current)
             self.candidates[candidateSig] = lst
+
+            seqMap = self.sequenceCache.getSequences(len(current))
+
+            for size in seqMap:
+                if size != len(current):
+                    seqOptions = seqMap[size]
+                    for array in seqOptions:
+                        self.expandCandidates(current, array)
 
     def toClusterSig(self, candidate):
         clusterSigLst = []

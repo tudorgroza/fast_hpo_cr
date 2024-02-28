@@ -74,6 +74,8 @@ class BioCreativeCorpus:
 
     def loadTestData(self):
         for file in os.listdir(BIOGS_TEST_FOLDER):
+            if file == '.DS_Store':
+                continue
             self.loadTestFile(file, join(BIOGS_TEST_FOLDER, file))
 
     def loadTestFile(self, file, filePath):
