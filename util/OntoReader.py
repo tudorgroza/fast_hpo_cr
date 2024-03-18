@@ -139,12 +139,3 @@ class OntoReader:
         if hpoId in self.reverse_alt_ids:
             return self.reverse_alt_ids[hpoId]
         return None
-
-
-def main():
-    ontoReader = OntoReader('/Users/tudor/Work/Data/ontologies/paper/hp_2019-09.obo')
-    print(ontoReader.synonyms['HP:0000078'])
-
-
-if __name__ == '__main__':
-    main()

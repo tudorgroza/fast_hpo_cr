@@ -41,9 +41,6 @@ class IndexTerms:
             if el['token'] in self.baseClusters:
                 clusterId = self.baseClusters[el['token']]
             else:
-                # TODO: If not in clusters - try to align it and add it to clusters
-                # TODO: In the meantine - just create a new cluster
-
                 if el['token'] in self.newClusterData:
                     clusterId = self.newClusterData[el['token']]
                 else:
