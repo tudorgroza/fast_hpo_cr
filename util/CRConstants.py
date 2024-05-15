@@ -4,9 +4,13 @@ POS_NN = 'NN'
 LABEL = 'LABEL'
 LAYPERSON = 'LAYPERSON'
 PHENOTYPIC_ABNORMALITY = 'HP:0000118'
+SCTID_PREFIX = 'SCTID:'
+ORPHA_PREFIX = 'ORPHA:'
 
 BASE_CLUSTERS = 'vocab.clusters.list'
 HP_INDEX_FILE = 'hp.index'
+SNOMED_INDEX_FILE = 'snomed.index'
+ORPHA_INDEX_FILE = 'orpha.index'
 KB_FILE_POS_KB = 'posKB.kb'
 BASE_SYNONYMS = 'base-synonyms'
 

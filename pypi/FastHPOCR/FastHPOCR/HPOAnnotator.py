@@ -12,14 +12,14 @@ class HPOAnnotator:
         self.crIndexKB = CRIndexKB()
         self.crIndexKB.load(crDataFile)
 
-    def annotate(self, text) -> [AnnotationObject]:
+    def annotate(self, text: str, longestMatch = False) -> [AnnotationObject]:
         textProcessor = TextProcessor(self.crIndexKB)
         textProcessor.process(text)
 
         candidateMatcher = CandidateMatcher(self.crIndexKB)
         candidateMatcher.matchCandidates(textProcessor.getCandidates())
 
-        result = FormatResults(text, self.crIndexKB, candidateMatcher.getMatches()).getResult()
+        result = FormatResults(text, self.crIndexKB, candidateMatcher.getMatches(), longestMatch).getResult()
         return result
 
     def printResults(self, annotationList):

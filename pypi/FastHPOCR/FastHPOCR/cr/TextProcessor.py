@@ -40,7 +40,10 @@ class TextProcessor:
                     lst.append(current)
                     self.candidates[candidateSig] = lst
 
-                    seqMap = SequenceData.SEQ_DATA[len(current)]
+                    size = len(current)
+                    if size > 20:
+                        size = 20
+                    seqMap = SequenceData.SEQ_DATA[size]
 
                     for size in seqMap:
                         if size != len(current):
@@ -59,7 +62,10 @@ class TextProcessor:
             lst.append(current)
             self.candidates[candidateSig] = lst
 
-            seqMap = SequenceData.SEQ_DATA[len(current)]
+            size = len(current)
+            if size > 20:
+                size = 20
+            seqMap = SequenceData.SEQ_DATA[size]
 
             for size in seqMap:
                 if size != len(current):

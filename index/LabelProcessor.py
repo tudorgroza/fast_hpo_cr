@@ -1,41 +1,22 @@
-from util.CRConstants import PHENOTYPIC_ABNORMALITY
-
-
 class LabelProcessor:
-    ontoReader = None
     terms = {}
     labels = {}
     dupLabels = {}
+    allow3LetterAcronyms = False
 
-    def __init__(self, ontoReader):
-        self.ontoReader = ontoReader
-        self.terms = {}
+    def __init__(self, terms, allow3LetterAcronyms=False):
+        self.terms = terms
+        self.allow3LetterAcronyms = allow3LetterAcronyms
         self.labels = {}
         self.dupLabels = {}
 
         print(' - Processing labels ...')
-        self.collectTerms()
         self.processBracketsInLabels()
         print(' - Collected {} terms.'.format(len(self.terms)))
         print(' - Found {} duplicated labels.'.format(len(self.dupLabels)))
         for label in self.dupLabels:
             print(' -- {} -> {}'.format(label, self.dupLabels[label]))
         self.processDuplicates()
-
-    def collectTerms(self):
-        for uri in self.ontoReader.terms:
-            if PHENOTYPIC_ABNORMALITY in self.ontoReader.allSuperClasses[uri]:
-                label = self.ontoReader.terms[uri]
-                syns = []
-                if uri in self.ontoReader.synonyms:
-                    for syn in self.ontoReader.synonyms[uri]:
-                        if len(syn) < 4 and syn.isupper():
-                            continue
-                        syns.append(syn)
-                self.terms[uri] = {
-                    'label': label,
-                    'syns': syns
-                }
 
     def processBracketsInLabels(self):
         for uri in self.terms:
@@ -48,7 +29,11 @@ class LabelProcessor:
             for syn in syns:
                 procced = self.processBrackets(syn, isSyn=True)
                 if procced:
-                    if len(syn) < 4 and syn.isupper():
+                    size = 4
+                    if self.allow3LetterAcronyms:
+                        size = 3
+
+                    if len(syn) < size:
                         continue
                     newSyns.append(syn)
 

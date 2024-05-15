@@ -1,4 +1,4 @@
-involvement,deformity,mutilation, malformation, changes, characteristics, disorder, defect, disability, dysfunction, difficulty, deficit, disturbance, abnormality, anomaly, manifestation, disrupted, difficult, problem, complication, issue, finding, alteration, degradation
+involvement,deformity,mutilation, malformation, changes, characteristics, disorder, defect, disability, dysfunction, difficulty, deficit, disturbance, abnormality, anomaly, manifestation, disrupted, difficult, problem, complication, issue, finding, alteration, degradation, dysregulation
 neonatal, birth, infancy
 edema, swelling
 bifid,duplication
@@ -29,9 +29,9 @@ puppet, aspect, disposition
 fists, hands
 paresis, palsy
 digit, finger
-reduced, decreased
-enlarged, increased, raised, elevated
-motor, movement
+reduced, decreased, diminished, low
+enlarged, increased, raised, elevated, high
+motor, movement, mobility
 colobomata, colomba
 nose, nasal
 tooth, dental
