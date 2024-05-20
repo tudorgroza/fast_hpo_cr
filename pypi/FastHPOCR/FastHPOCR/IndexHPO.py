@@ -17,17 +17,19 @@ class IndexHPO:
     externalSynFile = None
     valid = False
     allow3LetterAcronyms = False
+    rootConcepts = []
 
     clusters = {}
     synClusters = {}
     externalSynonyms = {}
     crIndexKB = None
 
-    def __init__(self, hpoLocation: str, outputFolder: str, externalSynFile=None, allow3LetterAcronyms=False):
+    def __init__(self, hpoLocation: str, outputFolder: str, rootConcepts=[], externalSynFile=None, allow3LetterAcronyms=False):
         self.resFolder = 'resources'
         self.hpoLocation = hpoLocation
         self.outputFolder = outputFolder
         self.externalSynFile = externalSynFile
+        self.rootConcepts = rootConcepts
         self.valid = False
         self.allow3LetterAcronyms = allow3LetterAcronyms
         self.crIndexKB = CRIndexKB()
@@ -41,7 +43,9 @@ class IndexHPO:
 
         self.loadPrerequisites()
         print(' - Preprocessing HPO terms ...')
-        preprocessHPOTerms = PreprocessHPOTerms(self.hpoLocation, externalSynonyms=self.externalSynonyms,
+        preprocessHPOTerms = PreprocessHPOTerms(self.hpoLocation,
+                                                rootConcepts=self.rootConcepts,
+                                                externalSynonyms=self.externalSynonyms,
                                                 allow3LetterAcronyms=self.allow3LetterAcronyms)
         processedTerms = preprocessHPOTerms.getProcessedTerms()
 

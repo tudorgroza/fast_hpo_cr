@@ -9,11 +9,13 @@ class PreprocessHPOTerms:
     processedTerms = {}
     terms = {}
 
-    def __init__(self, ontologyFile, externalSynonyms={}, allow3LetterAcronyms=False):
+    def __init__(self, ontologyFile, rootConcepts=[], externalSynonyms={}, allow3LetterAcronyms=False):
         ontoReader = OntoReader(ontologyFile)
         self.processedTerms = {}
 
-        labelProcessor = LabelProcessor(HPOLabelCollector(ontoReader, externalSynonyms=externalSynonyms,
+        labelProcessor = LabelProcessor(HPOLabelCollector(ontoReader,
+                                                          rootConcepts=rootConcepts,
+                                                          externalSynonyms=externalSynonyms,
                                                           allow3LetterAcronyms=allow3LetterAcronyms).getTerms(),
                                         allow3LetterAcronyms=allow3LetterAcronyms)
         self.terms = labelProcessor.getProcessedTerms()

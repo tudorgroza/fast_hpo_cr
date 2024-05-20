@@ -5,18 +5,27 @@ class HPOLabelCollector:
     terms = {}
     allow3LetterAcronyms = False
     externalSynonyms = {}
+    rootConcepts = []
 
-    def __init__(self, ontoReader, externalSynonyms={}, allow3LetterAcronyms=False):
+    def __init__(self, ontoReader, rootConcepts=[], externalSynonyms={}, allow3LetterAcronyms=False):
         self.terms = {}
         self.externalSynonyms = externalSynonyms
         self.allow3LetterAcronyms = allow3LetterAcronyms
+        self.rootConcepts = rootConcepts
         self.collectTerms(ontoReader)
 
     def collectTerms(self, ontoReader):
-        print('{} - {}'.format(self.externalSynonyms, self.allow3LetterAcronyms))
-
         for uri in ontoReader.terms:
             if PHENOTYPIC_ABNORMALITY in ontoReader.allSuperClasses[uri]:
+                if self.rootConcepts:
+                    found = False
+                    for ancestor in self.rootConcepts:
+                        if ancestor in ontoReader.allSuperClasses[uri]:
+                            found = True
+                            break
+                    if not found:
+                        continue
+
                 label = ontoReader.terms[uri]
                 syns = []
                 if uri in self.externalSynonyms:
