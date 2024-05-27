@@ -10,11 +10,15 @@ class CRIndexKB:
     hpoIndex = {}
 
     uriBasedIndex = {}
+    uriCategories = {}
     clusterSetBasedIndex = {}
+    catDictionary = {}
 
     def __init__(self):
         self.clusters = {}
         self.invertedClusters = {}
+        self.catDictionary = {}
+        self.uriCategories = {}
 
         self.hpoIndex = []
         self.uriBasedIndex = {}
@@ -44,10 +48,16 @@ class CRIndexKB:
 
     def setHPOIndex(self, termsToIndex):
         for uri in termsToIndex:
-            self.hpoIndex.append({
+            entry = {
                 'uri': uri,
-                'labels': termsToIndex[uri]
-            })
+                'labels': termsToIndex[uri]['labels']
+            }
+            if 'categories' in termsToIndex[uri]:
+                entry['categories'] = termsToIndex[uri]['categories']
+            self.hpoIndex.append(entry)
+
+    def setCatDictionary(self, catDictionary):
+        self.catDictionary = catDictionary
 
     def load(self, crIndexKBFile):
         with open(crIndexKBFile, 'r') as fh:
@@ -59,6 +69,8 @@ class CRIndexKB:
                 self.invertedClusters[entry] = clusterId
 
         self.hpoIndex = crData['termData']
+        if 'catDictionary' in crData:
+            self.catDictionary = crData['catDictionary']
         self.restructureHPOIndex()
 
     def restructureHPOIndex(self):
@@ -89,6 +101,8 @@ class CRIndexKB:
                 lst.append(label)
                 clusterData[clusterSig] = lst
             self.uriBasedIndex[uri] = clusterData
+            if 'categories' in term:
+                self.uriCategories[uri] = term['categories']
 
     def getClusterBasedTerms(self, clusterSig):
         if clusterSig in self.clusterSetBasedIndex:
@@ -98,6 +112,21 @@ class CRIndexKB:
     def getLabelsForUri(self, uri, clusterSig):
         return self.uriBasedIndex[uri][clusterSig]
 
+    def getCategoriesForUri(self, uri):
+        if not self.catDictionary:
+            return []
+
+        if not uri in self.uriCategories:
+            return []
+
+        result = []
+        for cat in self.uriCategories[uri]:
+            result.append({
+                'uri': cat,
+                'label': self.catDictionary[cat]
+            })
+        return result
+
     def serialize(self, fileOut, baseClusters):
         self.prepareClustersToSerialise(baseClusters)
 
@@ -105,6 +134,8 @@ class CRIndexKB:
             'termData': self.hpoIndex,
             'clusters': self.clusters
         }
+        if self.catDictionary:
+            data['catDictionary'] = self.catDictionary
 
         with open(fileOut, 'w') as fh:
             json.dump(data, fh, sort_keys=True, indent=4)

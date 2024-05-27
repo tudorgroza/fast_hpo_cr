@@ -7,9 +7,12 @@ from util.CRConstants import VB_BLACKLIST, POS_LIST
 class PreprocessSNOMEDTerms:
     processedTerms = {}
 
-    def __init__(self, jsonData):
+    def __init__(self, jsonData, externalSynonyms={}, indexConfig={}):
         self.processedTerms = {}
-        labelProcessor = LabelProcessor(SNOMEDLabelCollector(jsonData).getTerms())
+        labelProcessor = LabelProcessor(SNOMEDLabelCollector(jsonData,
+                                                             externalSynonyms=externalSynonyms,
+                                                             indexConfig=indexConfig).getTerms(),
+                                        indexConfig=indexConfig)
         self.terms = labelProcessor.getProcessedTerms()
 
         self.filterTerms()
@@ -18,6 +21,10 @@ class PreprocessSNOMEDTerms:
         for uri in self.terms:
             label = self.terms[uri]['label']
             syns = self.terms[uri]['syns']
+            categories = []
+            if 'categories' in self.terms[uri]:
+                categories = self.terms[uri]['categories']
+
             termLst = []
 
             tokenSet = self.processTerm(self.processLabel(label))
@@ -36,7 +43,13 @@ class PreprocessSNOMEDTerms:
                     'preferredLabel': False,
                     'tokens': filteredTokenSet
                 })
-            self.processedTerms[uri] = termLst
+
+            entry = {
+                'terms': termLst
+            }
+            if categories:
+                entry['categories'] = categories
+            self.processedTerms[uri] = entry
 
     def processLabel(self, label) -> str:
         label = label.lower()

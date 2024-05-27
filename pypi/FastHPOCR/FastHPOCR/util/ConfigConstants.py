@@ -1,0 +1,5 @@
+VAR_ROOT_CONCEPTS = 'rootConcepts'
+VAR_EXTENAL_SYNS = 'externalSynFile'
+VAR_3LETTER_ACRONYMS = 'allow3LetterAcronyms'
+VAR_INCLUDE_CATEGORY = 'includeTopLevelCategory'
+VAR_ALLOW_DUPLICATE_ENTRIES = 'allowDuplicateEntries'

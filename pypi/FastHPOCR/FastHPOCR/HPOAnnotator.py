@@ -12,7 +12,7 @@ class HPOAnnotator:
         self.crIndexKB = CRIndexKB()
         self.crIndexKB.load(crDataFile)
 
-    def annotate(self, text: str, longestMatch = False) -> [AnnotationObject]:
+    def annotate(self, text: str, longestMatch=False) -> [AnnotationObject]:
         textProcessor = TextProcessor(self.crIndexKB)
         textProcessor.process(text)
 
@@ -22,15 +22,22 @@ class HPOAnnotator:
         result = FormatResults(text, self.crIndexKB, candidateMatcher.getMatches(), longestMatch).getResult()
         return result
 
-    def printResults(self, annotationList):
+    def printResults(self, annotationList, includeCategoriesIfPresent=False):
         lines = []
         for annotationObject in annotationList:
-            lines.append(annotationObject.toString())
+            if includeCategoriesIfPresent:
+                lines.append(annotationObject.toStringWithCategories())
+            else:
+                lines.append(annotationObject.toString())
         print('\n'.join(lines))
 
-    def serialize(self, annotationList, fileOut):
+    def serialize(self, annotationList, fileOut, includeCategoriesIfPresent=False):
         lines = []
         for annotationObject in annotationList:
-            lines.append(annotationObject.toString())
+            if includeCategoriesIfPresent:
+                lines.append(annotationObject.toStringWithCategories())
+            else:
+                lines.append(annotationObject.toString())
         with open(fileOut, 'w') as fh:
             fh.write('\n'.join(lines))
+

@@ -63,12 +63,13 @@ class FormatResults:
                                 finalUri = uri
                                 break
 
+            categoryInfo = self.crIndexKB.getCategoriesForUri(finalUri)
             tempResults[position] = AnnotationObject(compressedCandidate['textSpan'],
                                                      finalUri,
                                                      finalLabel['originalLabel'],
                                                      compressedCandidate['startOffset'],
-                                                     compressedCandidate['endOffset']
-                                                     )
+                                                     compressedCandidate['endOffset'],
+                                                     categories=categoryInfo)
 
         for entry in tempResults:
             self.result.append(tempResults[entry])

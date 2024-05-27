@@ -8,10 +8,13 @@ class PreprocessORPHATerms:
     processedTerms = {}
     terms = {}
 
-    def __init__(self, orphaDataFile):
+    def __init__(self, orphaDataFile, externalSynonyms={}, indexConfig={}):
         self.processedTerms = {}
 
-        labelProcessor = LabelProcessor(ORPHALabelCollector(orphaDataFile).getTerms())
+        labelProcessor = LabelProcessor(ORPHALabelCollector(orphaDataFile,
+                                                            externalSynonyms=externalSynonyms,
+                                                            indexConfig=indexConfig).getTerms(),
+                                        indexConfig=indexConfig)
         self.terms = labelProcessor.getProcessedTerms()
 
         self.filterTerms()

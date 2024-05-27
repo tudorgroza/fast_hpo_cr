@@ -1,14 +1,18 @@
+from util import ConfigConstants
+
+
 class LabelProcessor:
     terms = {}
     labels = {}
     dupLabels = {}
     allow3LetterAcronyms = False
+    allowDuplicateEntries = False
 
-    def __init__(self, terms, allow3LetterAcronyms=False):
+    def __init__(self, terms, indexConfig={}):
         self.terms = terms
-        self.allow3LetterAcronyms = allow3LetterAcronyms
         self.labels = {}
         self.dupLabels = {}
+        self.processConfig(indexConfig)
 
         print(' - Processing labels ...')
         self.processBracketsInLabels()
@@ -16,7 +20,19 @@ class LabelProcessor:
         print(' - Found {} duplicated labels.'.format(len(self.dupLabels)))
         for label in self.dupLabels:
             print(' -- {} -> {}'.format(label, self.dupLabels[label]))
-        self.processDuplicates()
+        if not self.allowDuplicateEntries:
+            self.processDuplicates()
+
+    def processConfig(self, indexConfig):
+        if not indexConfig:
+            self.allow3LetterAcronyms = False
+            self.allowDuplicateEntries = False
+            return
+
+        if ConfigConstants.VAR_3LETTER_ACRONYMS in indexConfig:
+            self.allow3LetterAcronyms = indexConfig[ConfigConstants.VAR_3LETTER_ACRONYMS]
+        if ConfigConstants.VAR_ALLOW_DUPLICATE_ENTRIES in indexConfig:
+            self.allowDuplicateEntries = indexConfig[ConfigConstants.VAR_ALLOW_DUPLICATE_ENTRIES]
 
     def processBracketsInLabels(self):
         for uri in self.terms:
@@ -33,14 +49,17 @@ class LabelProcessor:
                     if self.allow3LetterAcronyms:
                         size = 3
 
-                    if len(syn) < size:
+                    if len(syn) < size and syn.isupper():
                         continue
                     newSyns.append(syn)
 
-            self.terms[uri] = {
+            entry = {
                 'label': label,
                 'syns': newSyns
             }
+            if 'categories' in self.terms[uri]:
+                entry['categories'] = self.terms[uri]['categories']
+            self.terms[uri] = entry
 
             if not label in self.labels:
                 self.labels[label] = uri
@@ -84,11 +103,13 @@ class LabelProcessor:
             for syn in syns:
                 if not syn in self.labels:
                     newSyns.append(syn)
-
-            self.terms[uri] = {
+            entry = {
                 'label': label,
                 'syns': newSyns
             }
+            if 'categories' in self.terms[uri]:
+                entry['categories'] = self.terms[uri]['categories']
+            self.terms[uri] = entry
 
         for label in self.dupLabels:
             uris = self.dupLabels[label]
@@ -99,10 +120,13 @@ class LabelProcessor:
                     newSyns = syns.copy()
                     newLabel = syns[0]
                     newSyns.remove(newLabel)
-                    self.terms[uri] = {
+                    entry = {
                         'label': newLabel,
                         'syns': newSyns
                     }
+                    if 'categories' in self.terms[uri]:
+                        entry['categories'] = self.terms[uri]['categories']
+                    self.terms[uri] = entry
                 else:
                     toRemove.append(uri)
             for uri in toRemove:

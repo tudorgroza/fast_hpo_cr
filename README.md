@@ -19,11 +19,26 @@ The accuracy of performing concept recognition using these two vocabularies has 
 
 ### Indexing HPO
 
+Optional index configuration:
+```python
+indexConfig = {
+    'rootConcepts': ['HP:0001574', 'HP:0000478', 'HP:0000598', 'HP:0000707', 'HP:0000119']
+    'allow3LetterAcronyms': True | False,
+    'includeTopLevelCategory': True | False,
+    'allowDuplicateEntries': True | False
+}
+```
+where:
+* `rootConcepts` - will restrict indexing only to those classes subsumed under the list of top level HPO abnormalities provided; in the example above: `'HP:0001574', 'HP:0000478', 'HP:0000598', 'HP:0000707', 'HP:0000119'`
+* `allow3LetterAcronyms` - 3 letter acronyms can lead to false positives due to their lexical ambiguity. This option enables their inclusion in the set of tokens associated with concepts. 
+* `includeTopLevelCategory` - add extra information to all concepts indexed for text mining
+* `allowDuplicateEntries` - allows for duplicated labels / synonyms to be indexed.
+
 Use `IndexHPO` to create an index from an existing HPO version:
 ```python
     from FastHPOCR.IndexHPO import IndexHPO
 
-    indexHPO = IndexHPO(<hpoFileLocation>, <outputFolder>)
+    indexHPO = IndexHPO(<hpoFileLocation>, <outputFolder>, indexConfig=indexConfig)
     indexHPO.index()
 ```
 where
@@ -31,18 +46,31 @@ where
 * `outputFolder` - path where the resulting index will be deposited
 
 ### Indexing SNOMED
+Index configuration:
+```python
+indexConfig = {
+    'rootConcepts': ['SCTID:64572001']
+    'allow3LetterAcronyms': True | False,
+    'includeTopLevelCategory': True | False,
+    'allowDuplicateEntries': True | False
+}
+```
+where:
+* `rootConcepts` (**mandatory**) - will restrict indexing only to those classes subsumed under the list of top level HPO abnormalities provided; in the example above: `'SCTID:64572001'` or `'64572001'` (*Disease*)
+* `allow3LetterAcronyms` (*optional*) - 3 letter acronyms can lead to false positives due to their lexical ambiguity. This option enables their inclusion in the set of tokens associated with concepts. 
+* `includeTopLevelCategory` (*optional*) - add extra information to all concepts indexed for text mining
+* `allowDuplicateEntries` (*optional*) - allows for duplicated labels / synonyms to be indexed.
 
 Use `IndexSNOMED` to create an index from an existing SNOMED version using a given root concept:
 ```python
     from FastHPOCR.IndexSNOMED import IndexSNOMED
 
-    indexSNOMED = IndexSNOMED(<descriptionFile>, <relationsFile>, <rootConcept>, <outputFolder>)
+    indexSNOMED = IndexSNOMED(<descriptionFile>, <relationsFile>, <outputFolder>, indexConfig=indexConfig)
     indexSNOMED.index()
 ```
 where
 * `descriptionFile` - path to the SNOMED description file targeted for indexing - e.g., `sct2_Description_Full-en_INT_20230630.txt`
 * `relationsFile` - path to the SNOMED relations file - e.g., `sct2_Relationship_Full_INT_20230630.txt`
-* `rootConcept` - concept to be used as root for the branch of SNOMED to be indexed - e.g., `SCTID:64572001` or `64572001` (*Disease*)
 * `outputFolder` - path where the resulting index will be deposited
 
 **NOTE:** this functionality is intentionally targeting a particular branch of the terminology and not the terminology in its entirety. Hence, providing a `rootConcept` is mandatory.
@@ -73,5 +101,7 @@ Use `HPOAnnotator`
     annotations = hpoAnnotator.annotate(<text>)
 
     # To serialize the annotations on disk
-    hpoAnnotator.serialize(annotations, <outFileName>)
+    hpoAnnotator.serialize(annotations, <outFileName>, includeCategoriesIfPresent=True)
 ```
+where:
+* `includeCategoriesIfPresent` - can be set to `True | False` if additional information on the concepts should be provided (if this was originally included in the index via `includeTopLevelCategory` in `indexConfig`)

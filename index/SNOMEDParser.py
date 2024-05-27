@@ -1,12 +1,24 @@
+from util import ConfigConstants
+from util.CRConstants import SCTID_PREFIX
+
+
 class SNOMEDParser:
     conceptDescriptions = {}
     concepts = {}
     subTree = {}
+    superClasses = {}
+    catDictionary = {}
+    includeTopLevelCategory = False
 
-    def __init__(self, descFile, relationsFile):
+    def __init__(self, descFile, relationsFile, indexConfig={}):
         self.conceptDescriptions = {}
         self.concepts = {}
         self.subTree = {}
+        self.superClasses = {}
+        self.catDictionary = {}
+
+        if ConfigConstants.VAR_INCLUDE_CATEGORY in indexConfig:
+            self.includeTopLevelCategory = indexConfig[ConfigConstants.VAR_INCLUDE_CATEGORY]
 
         self.readLabels(descFile)
         self.readRelations(relationsFile)
@@ -73,19 +85,53 @@ class SNOMEDParser:
                         'children': []
                     }
 
-    def trim(self, uri):
-        uriData = self.concepts[uri]
-        for child in uriData['children']:
-            self.subTree[child] = self.concepts[child]
-            self.compileChildren(child)
+    def trim(self, uris):
+        for uri in uris:
+            uriData = self.concepts[uri]
+            for child in uriData['children']:
+                self.catDictionary[SCTID_PREFIX + child] = self.concepts[child]['label'][0]
 
-    def compileChildren(self, uri):
+        for uri in uris:
+            uriData = self.concepts[uri]
+            for child in uriData['children']:
+                entry = self.concepts[child]
+                if self.includeTopLevelCategory:
+                    entry['categories'] = [SCTID_PREFIX + child]
+                self.subTree[child] = entry
+                self.compileChildren(child, SCTID_PREFIX + child)
+
+    def compileChildren(self, uri, rootConcept):
         uriData = self.concepts[uri]
         for child in uriData['children']:
             if child in self.subTree:
+                if not self.includeTopLevelCategory:
+                    continue
+                entry = self.subTree[child]
+                existing = []
+                if 'categories' in entry:
+                    existing = entry['categories']
+                if not rootConcept in existing:
+                    existing.append(rootConcept)
+                entry['categories'] = existing
+                self.subTree[child] = entry
                 continue
-            self.subTree[child] = self.concepts[child]
-            self.compileChildren(child)
+
+            entry = self.concepts[child]
+            if self.includeTopLevelCategory:
+                existing = []
+                if 'categories' in entry:
+                    existing = entry['categories']
+                if not rootConcept in existing:
+                    existing.append(rootConcept)
+                entry['categories'] = existing
+            self.subTree[child] = entry
+
+            self.compileChildren(child, rootConcept)
 
     def getSubTree(self):
         return self.subTree
+
+    def getCategoriesDictionary(self):
+        if self.includeTopLevelCategory:
+            return self.catDictionary
+        return {}

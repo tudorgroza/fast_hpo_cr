@@ -7,6 +7,7 @@ from FastHPOCR.cr.CRIndexKB import CRIndexKB
 from FastHPOCR.index.IndexTerms import IndexTerms
 from FastHPOCR.index.PreprocessORPHATerms import PreprocessORPHATerms
 from FastHPOCR.index.SynonymExpader import SynonymExpader
+from FastHPOCR.util import ConfigConstants
 from FastHPOCR.util.CRConstants import BASE_CLUSTERS, BASE_SYNONYMS, ORPHA_INDEX_FILE
 
 
@@ -15,17 +16,21 @@ class IndexORPHANET:
     orphaDataFile = None
     outputFolder = None
     valid = False
+    indexConfig = {}
 
     clusters = {}
     synClusters = {}
+    externalSynonyms = {}
     crIndexKB = None
 
-    def __init__(self, orphaDataFile: str, outputFolder: str):
+    def __init__(self, orphaDataFile: str, outputFolder: str, indexConfig={}):
         self.resFolder = 'resources'
         self.orphaDataFile = orphaDataFile
         self.outputFolder = outputFolder
+        self.indexConfig = indexConfig
         self.valid = False
         self.crIndexKB = CRIndexKB()
+        self.externalSynonyms = {}
 
     def index(self):
         start = time.time()
@@ -35,7 +40,9 @@ class IndexORPHANET:
 
         self.loadPrerequisites()
         print(' - Preprocessing ORPHA terms ...')
-        preprocessOntologyTerms = PreprocessORPHATerms(self.orphaDataFile)
+        preprocessOntologyTerms = PreprocessORPHATerms(self.orphaDataFile,
+                                                       externalSynonyms=self.externalSynonyms,
+                                                       indexConfig=self.indexConfig)
         processedTerms = preprocessOntologyTerms.getProcessedTerms()
 
         print(' - Indexing ORPHA terms ...')
@@ -55,6 +62,7 @@ class IndexORPHANET:
     def loadPrerequisites(self):
         self.loadClusterData()
         self.loadSynClusters()
+        self.loadExternalSynonyms()
 
     def loadClusterData(self):
         self.clusters = {}
@@ -85,6 +93,34 @@ class IndexORPHANET:
                     token = token.strip()
                     self.synClusters[self.clusters[token]] = clusterSet
 
+    def loadExternalSynonyms(self):
+        if not self.indexConfig:
+            return
+
+        if self.indexConfig:
+            if not ConfigConstants.VAR_EXTENAL_SYNS in self.indexConfig:
+                return
+
+        with open(self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS], 'r') as fh:
+            lines = fh.readlines()
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            segs = line.split('=')
+            if len(segs) != 2:
+                continue
+            uri = segs[0].strip()
+            if not uri.startswith('HP:'):
+                continue
+            syn = segs[1].strip()
+            lst = []
+            if uri in self.externalSynonyms:
+                lst = self.externalSynonyms[uri]
+            lst.append(syn)
+            self.externalSynonyms[uri] = lst
+
     def checkPrerequisites(self):
         if not os.path.isfile(self.orphaDataFile):
             print('ERROR: Orphanet JSON data file provided [{}] does not exist!'.format(self.orphaDataFile))
@@ -94,5 +130,11 @@ class IndexORPHANET:
             print('ERROR: Output folder provided [{}] does not exist!'.format(self.outputFolder))
             self.valid = False
             return
+
+        if self.indexConfig:
+            if ConfigConstants.VAR_EXTENAL_SYNS in self.indexConfig:
+                if not os.path.isfile(self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS]):
+                    print('WARNING: External synonyms file provided [{}] does not exist!'.format(
+                        self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS]))
 
         self.valid = True

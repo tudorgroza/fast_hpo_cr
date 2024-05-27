@@ -1,18 +1,33 @@
+from FastHPOCR.util import ConfigConstants
 from FastHPOCR.util.CRConstants import PHENOTYPIC_ABNORMALITY
 
 
 class HPOLabelCollector:
     terms = {}
-    allow3LetterAcronyms = False
-    externalSynonyms = {}
     rootConcepts = []
+    externalSynonyms = {}
+    allow3LetterAcronyms = False
+    includeTopLevelCategory = False
 
-    def __init__(self, ontoReader, rootConcepts=[], externalSynonyms={}, allow3LetterAcronyms=False):
+    def __init__(self, ontoReader, externalSynonyms={}, indexConfig={}):
         self.terms = {}
         self.externalSynonyms = externalSynonyms
-        self.allow3LetterAcronyms = allow3LetterAcronyms
-        self.rootConcepts = rootConcepts
+        self.processConfig(indexConfig)
         self.collectTerms(ontoReader)
+
+    def processConfig(self, indexConfig):
+        if not indexConfig:
+            self.rootConcepts = []
+            self.allow3LetterAcronyms = False
+            self.includeTopLevelCategory = False
+            return
+
+        if ConfigConstants.VAR_ROOT_CONCEPTS in indexConfig:
+            self.rootConcepts = indexConfig[ConfigConstants.VAR_ROOT_CONCEPTS]
+        if ConfigConstants.VAR_3LETTER_ACRONYMS in indexConfig:
+            self.allow3LetterAcronyms = indexConfig[ConfigConstants.VAR_3LETTER_ACRONYMS]
+        if ConfigConstants.VAR_INCLUDE_CATEGORY in indexConfig:
+            self.includeTopLevelCategory = indexConfig[ConfigConstants.VAR_INCLUDE_CATEGORY]
 
     def collectTerms(self, ontoReader):
         for uri in ontoReader.terms:
@@ -39,13 +54,23 @@ class HPOLabelCollector:
                         if self.allow3LetterAcronyms:
                             size = 3
 
-                        if len(syn) < size:
+                        if len(syn) < size and syn.isupper():
                             continue
                         syns.append(syn)
-                self.terms[uri] = {
+                entry = {
                     'label': label,
                     'syns': syns
                 }
+                if self.includeTopLevelCategory:
+                    entry['categories'] = self.findCategories(uri, ontoReader)
+                self.terms[uri] = entry
+
+    def findCategories(self, uri, ontoReader):
+        categories = []
+        for cat in ontoReader.abn_classes:
+            if cat in ontoReader.allSuperClasses[uri] or cat == uri:
+                categories.append(cat)
+        return categories
 
     def getTerms(self):
         return self.terms

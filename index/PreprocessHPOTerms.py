@@ -1,6 +1,6 @@
 from index.HPOLabelCollector import HPOLabelCollector
 from index.LabelProcessor import LabelProcessor
-from util import ContentUtil
+from util import ContentUtil, ConfigConstants
 from util.CRConstants import VB_BLACKLIST, POS_LIST
 from util.OntoReader import OntoReader
 
@@ -8,24 +8,29 @@ from util.OntoReader import OntoReader
 class PreprocessHPOTerms:
     processedTerms = {}
     terms = {}
+    catDictionary = {}
 
-    def __init__(self, ontologyFile, rootConcepts=[], externalSynonyms={}, allow3LetterAcronyms=False):
+    def __init__(self, ontologyFile, externalSynonyms={}, indexConfig={}):
         ontoReader = OntoReader(ontologyFile)
         self.processedTerms = {}
 
         labelProcessor = LabelProcessor(HPOLabelCollector(ontoReader,
-                                                          rootConcepts=rootConcepts,
                                                           externalSynonyms=externalSynonyms,
-                                                          allow3LetterAcronyms=allow3LetterAcronyms).getTerms(),
-                                        allow3LetterAcronyms=allow3LetterAcronyms)
+                                                          indexConfig=indexConfig).getTerms(),
+                                        indexConfig=indexConfig)
         self.terms = labelProcessor.getProcessedTerms()
 
         self.filterTerms()
+        self.buildCategoriesDictionary(indexConfig, ontoReader)
 
     def filterTerms(self):
         for uri in self.terms:
             label = self.terms[uri]['label']
             syns = self.terms[uri]['syns']
+            categories = []
+            if 'categories' in self.terms[uri]:
+                categories = self.terms[uri]['categories']
+
             termLst = []
 
             tokenSet = self.processTerm(self.processLabel(label))
@@ -44,7 +49,12 @@ class PreprocessHPOTerms:
                     'preferredLabel': False,
                     'tokens': filteredTokenSet
                 })
-            self.processedTerms[uri] = termLst
+            entry = {
+                'terms': termLst
+            }
+            if categories:
+                entry['categories'] = categories
+            self.processedTerms[uri] = entry
 
     def processLabel(self, label) -> str:
         label = label.lower()
@@ -70,5 +80,17 @@ class PreprocessHPOTerms:
             result.append(token)
         return result
 
+    def buildCategoriesDictionary(self, indexConfig, ontoReader):
+        if not indexConfig:
+            return
+
+        if ConfigConstants.VAR_INCLUDE_CATEGORY in indexConfig:
+            if indexConfig[ConfigConstants.VAR_INCLUDE_CATEGORY]:
+                for uri in ontoReader.abn_classes:
+                    self.catDictionary[uri] = ontoReader.terms[uri]
+
     def getProcessedTerms(self):
         return self.processedTerms
+
+    def getCategoriesDictionary(self):
+        return self.catDictionary

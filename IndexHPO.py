@@ -6,6 +6,7 @@ from cr.CRIndexKB import CRIndexKB
 from index.IndexTerms import IndexTerms
 from index.PreprocessHPOTerms import PreprocessHPOTerms
 from index.SynonymExpader import SynonymExpader
+from util import ConfigConstants
 from util.CRConstants import HP_INDEX_FILE, BASE_CLUSTERS, BASE_SYNONYMS
 
 
@@ -13,24 +14,20 @@ class IndexHPO:
     resFolder = None
     hpoLocation = None
     outputFolder = None
-    externalSynFile = None
+    indexConfig = {}
     valid = False
-    allow3LetterAcronyms = False
-    rootConcepts = []
 
     clusters = {}
     synClusters = {}
     externalSynonyms = {}
     crIndexKB = None
 
-    def __init__(self, hpoLocation: str, outputFolder: str, rootConcepts=[], externalSynFile=None, allow3LetterAcronyms=False):
+    def __init__(self, hpoLocation: str, outputFolder: str, indexConfig={}):
         self.resFolder = 'resources'
         self.hpoLocation = hpoLocation
         self.outputFolder = outputFolder
-        self.externalSynFile = externalSynFile
-        self.rootConcepts = rootConcepts
+        self.indexConfig = indexConfig
         self.valid = False
-        self.allow3LetterAcronyms = allow3LetterAcronyms
         self.crIndexKB = CRIndexKB()
         self.externalSynonyms = {}
 
@@ -43,10 +40,10 @@ class IndexHPO:
         self.loadPrerequisites()
         print(' - Preprocessing HPO terms ...')
         preprocessHPOTerms = PreprocessHPOTerms(self.hpoLocation,
-                                                rootConcepts=self.rootConcepts,
                                                 externalSynonyms=self.externalSynonyms,
-                                                allow3LetterAcronyms=self.allow3LetterAcronyms)
+                                                indexConfig=self.indexConfig)
         processedTerms = preprocessHPOTerms.getProcessedTerms()
+        catDictionary = preprocessHPOTerms.getCategoriesDictionary()
 
         print(' - Indexing HPO terms ...')
         indexTerms = IndexTerms(processedTerms, self.clusters, self.crIndexKB)
@@ -58,6 +55,7 @@ class IndexHPO:
 
         print(' - Serializing index ...')
         self.crIndexKB.setHPOIndex(termsToIndex)
+        self.crIndexKB.setCatDictionary(catDictionary)
         self.crIndexKB.serialize(join(self.outputFolder, HP_INDEX_FILE), self.clusters)
         end = time.time()
         print(' - HPO index created in {}s'.format(round(end - start, 2)))
@@ -97,9 +95,14 @@ class IndexHPO:
                         self.synClusters[self.clusters[token]] = clusterSet
 
     def loadExternalSynonyms(self):
-        if not self.externalSynFile:
+        if not self.indexConfig:
             return
-        with open(self.externalSynFile, 'r') as fh:
+
+        if self.indexConfig:
+            if not ConfigConstants.VAR_EXTENAL_SYNS in self.indexConfig:
+                return
+
+        with open(self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS], 'r') as fh:
             lines = fh.readlines()
 
         for line in lines:
@@ -129,9 +132,10 @@ class IndexHPO:
             self.valid = False
             return
 
-        if self.externalSynFile:
-            if not os.path.isfile(self.externalSynFile):
-                print('WARNING: External synonyms file provided [{}] does not exist!'.format(self.externalSynFile))
-                self.externalSynFile = None
+        if self.indexConfig:
+            if ConfigConstants.VAR_EXTENAL_SYNS in self.indexConfig:
+                if not os.path.isfile(self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS]):
+                    print('WARNING: External synonyms file provided [{}] does not exist!'.format(
+                        self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS]))
 
         self.valid = True

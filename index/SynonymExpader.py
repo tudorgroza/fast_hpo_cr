@@ -7,8 +7,11 @@ class SynonymExpader:
         self.synClusters = synClusters
 
         for uri in termsToIndex:
-            newLabelList = self.augment(termsToIndex[uri], voidTokens)
-            self.expand(uri, newLabelList)
+            newLabelList = self.augment(termsToIndex[uri]['labels'], voidTokens)
+            categories = []
+            if 'categories' in termsToIndex[uri]:
+                categories = termsToIndex[uri]['categories']
+            self.expand(uri, newLabelList, categories)
 
     def augment(self, labelList, voidTokens):
         newList = []
@@ -31,7 +34,7 @@ class SynonymExpader:
 
         return newList
 
-    def expand(self, uri, labelList):
+    def expand(self, uri, labelList, categories):
         newLabelList = []
         for label in labelList:
             newLabelList.append(label)
@@ -40,7 +43,12 @@ class SynonymExpader:
                 if clusterId in self.synClusters:
                     newLabels = self.generate(label, clusterId, self.synClusters[clusterId])
                     newLabelList.extend(newLabels)
-        self.expandedTerms[uri] = newLabelList
+        entry = {
+            'labels': newLabelList
+        }
+        if categories:
+            entry['categories'] = categories
+        self.expandedTerms[uri] = entry
 
     def generate(self, label, clusterId, synClusterSet):
         labelSet = []

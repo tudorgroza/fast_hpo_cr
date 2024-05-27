@@ -27,12 +27,18 @@ class IndexTerms:
 
     def indexTerms(self):
         for uri in self.processedTerms:
-            labelSet = self.processedTerms[uri]
+            labelSet = self.processedTerms[uri]['terms']
 
             readyLabels = []
             for label in labelSet:
                 readyLabels.append(self.prepareLabel(label))
-            self.termsToIndex[uri] = readyLabels
+
+            entry = {
+                'labels': readyLabels
+            }
+            if 'categories' in self.processedTerms[uri]:
+                entry['categories'] = self.processedTerms[uri]['categories']
+            self.termsToIndex[uri] = entry
 
     def prepareLabel(self, label):
         clusterIds = []

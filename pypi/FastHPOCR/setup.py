@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
 	name="FastHPOCR",
-	version="0.1.1",
+	version="0.1.2",
 	author="Tudor Groza",
 	description="FastHPOCR is a phenotype concept recognition package using the Human Phenotype Ontology to extract concepts from free text.",
 	package_data={'': ['license.txt','README.md','resources/base-synonyms','resources/vocab.clusters.list']},

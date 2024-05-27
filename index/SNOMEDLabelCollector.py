@@ -1,3 +1,4 @@
+from util import ConfigConstants
 from util.CRConstants import SCTID_PREFIX
 
 SPECIAL_TOKENS = ['in situ', 'present']
@@ -5,14 +6,25 @@ SPECIAL_TOKENS = ['in situ', 'present']
 
 class SNOMEDLabelCollector:
     terms = {}
+    externalSynonyms = {}
+    allow3LetterAcronyms = False
 
-    def __init__(self, snomedData):
+    def __init__(self, snomedData, externalSynonyms={}, indexConfig={}):
         self.terms = {}
+        self.externalSynonyms = externalSynonyms
+
+        if ConfigConstants.VAR_3LETTER_ACRONYMS in indexConfig:
+            self.allow3LetterAcronyms = indexConfig[ConfigConstants.VAR_3LETTER_ACRONYMS]
+
         self.collectTerms(snomedData)
 
     def collectTerms(self, snomedData):
         for uri in snomedData:
             uriData = snomedData[uri]
+            categories = []
+            if 'categories' in uriData:
+                categories = uriData['categories']
+
             label = ''
             for lbl in uriData['label']:
                 if not '(' in lbl and not ',' in lbl:
@@ -27,11 +39,18 @@ class SNOMEDLabelCollector:
                 continue
 
             syns = []
+            if uri in self.externalSynonyms:
+                syns.extend(self.externalSynonyms[uri])
+
             for lbl in uriData['label']:
                 if lbl == label:
                     continue
                 syn = self.processSpecial(lbl)
-                if len(syn) < 4 and syn.isupper():
+                size = 4
+                if self.allow3LetterAcronyms:
+                    size = 3
+
+                if len(syn) < size and syn.isupper():
                     continue
                 if syn == label:
                     continue
@@ -39,10 +58,14 @@ class SNOMEDLabelCollector:
                     continue
                 syns.append(syn)
 
-            self.terms[SCTID_PREFIX + uri] = {
+            entry = {
                 'label': label,
                 'syns': syns
             }
+            if categories:
+                entry['categories'] = categories
+
+            self.terms[SCTID_PREFIX + uri] = entry
 
     def processSpecial(self, lbl):
         tmp = lbl
