@@ -41,7 +41,9 @@ class PreprocessORPHATerms:
                     'preferredLabel': False,
                     'tokens': filteredTokenSet
                 })
-            self.processedTerms[uri] = termLst
+            self.processedTerms[uri] = {
+                'terms': termLst
+            }
 
     def processLabel(self, label) -> str:
         label = label.lower()
