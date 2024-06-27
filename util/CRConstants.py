@@ -11,6 +11,7 @@ BASE_CLUSTERS = 'vocab.clusters.list'
 HP_INDEX_FILE = 'hp.index'
 SNOMED_INDEX_FILE = 'snomed.index'
 ORPHA_INDEX_FILE = 'orpha.index'
+MONDO_INDEX_FILE = 'mondo.index'
 KB_FILE_POS_KB = 'posKB.kb'
 BASE_SYNONYMS = 'base-synonyms'
 

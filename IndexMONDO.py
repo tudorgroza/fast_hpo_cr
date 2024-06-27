@@ -4,38 +4,32 @@ from os.path import join
 
 from cr.CRIndexKB import CRIndexKB
 from index.IndexTerms import IndexTerms
-from index.PreprocessSNOMEDTerms import PreprocessSNOMEDTerms
-from index.SNOMEDParser import SNOMEDParser
+from index.PreprocessMONDOTerms import PreprocessMONDOTerms
 from index.SynonymExpader import SynonymExpader
 from util import ConfigConstants
-from util.CRConstants import BASE_CLUSTERS, BASE_SYNONYMS, SNOMED_INDEX_FILE
+from util.CRConstants import BASE_CLUSTERS, BASE_SYNONYMS, MONDO_INDEX_FILE
 
 
-class IndexSNOMED:
+class IndexMONDO:
     resFolder = None
-    descFile = None
-    relationsFile = None
+    mondoLocation = None
     outputFolder = None
+    indexConfig = {}
     valid = False
 
-    indexConfig = {}
     clusters = {}
     synClusters = {}
     externalSynonyms = {}
-    rootConcepts = []
     crIndexKB = None
 
-    def __init__(self, descFile: str, relationsFile: str, outputFolder: str, indexConfig={}):
+    def __init__(self, mondoLocation: str, outputFolder: str, indexConfig={}):
         self.resFolder = 'resources'
-        self.descFile = descFile
-        self.relationsFile = relationsFile
-        self.indexConfig = indexConfig
+        self.mondoLocation = mondoLocation
         self.outputFolder = outputFolder
+        self.indexConfig = indexConfig
         self.valid = False
         self.crIndexKB = CRIndexKB()
-
         self.externalSynonyms = {}
-        self.rootConcepts = []
 
     def index(self):
         start = time.time()
@@ -44,18 +38,13 @@ class IndexSNOMED:
             return
 
         self.loadPrerequisites()
-        print(' - Preprocessing SNOMED ...')
-        snomedParser = SNOMEDParser(self.descFile, self.relationsFile, indexConfig=self.indexConfig)
-        snomedParser.trim(self.rootConcepts)
-        catDictionary = snomedParser.getCategoriesDictionary()
+        print(' - Preprocessing MONDO terms ...')
+        preprocessMONDOTerms = PreprocessMONDOTerms(self.mondoLocation,
+                                                    externalSynonyms=self.externalSynonyms,
+                                                    indexConfig=self.indexConfig)
+        processedTerms = preprocessMONDOTerms.getProcessedTerms()
 
-        print(' - Preprocessing SNOMED terms ...')
-        preprocessOntologyTerms = PreprocessSNOMEDTerms(snomedParser.getSubTree(),
-                                                        externalSynonyms=self.externalSynonyms,
-                                                        indexConfig=self.indexConfig)
-        processedTerms = preprocessOntologyTerms.getProcessedTerms()
-
-        print(' - Indexing terms ...')
+        print(' - Indexing MONDO terms ...')
         indexTerms = IndexTerms(processedTerms, self.clusters, self.crIndexKB)
         termsToIndex = indexTerms.getTermsToIndex()
         voidTokens = indexTerms.getVoidTokens()
@@ -65,10 +54,9 @@ class IndexSNOMED:
 
         print(' - Serializing index ...')
         self.crIndexKB.setHPOIndex(termsToIndex)
-        self.crIndexKB.setCatDictionary(catDictionary)
-        self.crIndexKB.serialize(join(self.outputFolder, SNOMED_INDEX_FILE), self.clusters)
+        self.crIndexKB.serialize(join(self.outputFolder, MONDO_INDEX_FILE), self.clusters)
         end = time.time()
-        print(' - SNOMED index created in {}s'.format(round(end - start, 2)))
+        print(' - MONDO index created in {}s'.format(round(end - start, 2)))
 
     def loadPrerequisites(self):
         self.loadClusterData()
@@ -123,7 +111,7 @@ class IndexSNOMED:
             if len(segs) != 2:
                 continue
             uri = segs[0].strip()
-            if not uri.startswith('SCTID:'):
+            if not uri.startswith('MONDO:'):
                 continue
             syn = segs[1].strip()
             lst = []
@@ -133,46 +121,19 @@ class IndexSNOMED:
             self.externalSynonyms[uri] = lst
 
     def checkPrerequisites(self):
-        if not os.path.isfile(self.descFile):
-            print('ERROR: SNOMED descriptions file provided [{}] does not exist!'.format(self.descFile))
+        if not os.path.isfile(self.mondoLocation):
+            print('ERROR: Ontology file provided [{}] does not exist!'.format(self.mondoLocation))
             self.valid = False
             return
-        if not os.path.isfile(self.relationsFile):
-            print('ERROR: SNOMED relations file provided [{}] does not exist!'.format(self.relationsFile))
-            self.valid = False
-            return
-
-        if not self.indexConfig:
-            print('ERROR: SNOMED root concept(s) not provided!')
-            self.valid = False
-            return
-
-        if not ConfigConstants.VAR_ROOT_CONCEPTS in self.indexConfig:
-            print('ERROR: SNOMED root concept(s) not provided!')
-            self.valid = False
-            return
-
-        for rootConcept in self.indexConfig[ConfigConstants.VAR_ROOT_CONCEPTS]:
-            rootConcept = rootConcept.lower().strip()
-            rootConcept = rootConcept.replace('sctid', '').strip()
-            rootConcept = rootConcept.replace(':', '').strip()
-            if not rootConcept.isnumeric():
-                print('WARNING: Ignoring SNOMED root concept {} because it is invalid'.format(rootConcept))
-                continue
-            self.rootConcepts.append(rootConcept)
-        if not self.rootConcepts:
-            print('ERROR: No valid SNOMED root concept(s) found!')
-            self.valid = False
-            return
-
-        if ConfigConstants.VAR_EXTENAL_SYNS in self.indexConfig:
-            if not os.path.isfile(self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS]):
-                print('WARNING: External synonyms file provided [{}] does not exist!'.format(
-                    self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS]))
-
         if not os.path.isdir(self.outputFolder):
             print('ERROR: Output folder provided [{}] does not exist!'.format(self.outputFolder))
             self.valid = False
             return
+
+        if self.indexConfig:
+            if ConfigConstants.VAR_EXTENAL_SYNS in self.indexConfig:
+                if not os.path.isfile(self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS]):
+                    print('WARNING: External synonyms file provided [{}] does not exist!'.format(
+                        self.indexConfig[ConfigConstants.VAR_EXTENAL_SYNS]))
 
         self.valid = True

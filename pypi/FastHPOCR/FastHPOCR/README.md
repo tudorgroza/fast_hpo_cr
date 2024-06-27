@@ -75,6 +75,31 @@ where
 
 **NOTE:** this functionality is intentionally targeting a particular branch of the terminology and not the terminology in its entirety. Hence, providing a `rootConcept` is mandatory.
 
+### Indexing MONDO
+
+Optional index configuration:
+```python
+indexConfig = {
+    'allow3LetterAcronyms': True | False,
+    'allowDuplicateEntries': True | False
+}
+```
+where:
+* `allow3LetterAcronyms` - 3 letter acronyms can lead to false positives due to their lexical ambiguity. This option enables their inclusion in the set of tokens associated with concepts. 
+* `allowDuplicateEntries` - allows for duplicated labels / synonyms to be indexed.
+
+Use `IndexMONDO` to create an index from an existing HPO version:
+```python
+    from FastHPOCR.IndexMONDO import IndexMONDO
+
+    indexMONDO = IndexMONDO(<mondoFileLocation>, <outputFolder>, indexConfig=indexConfig)
+    indexMONDO.index()
+```
+where
+* `mondoFileLocation` - path to the `mondo.obo` file targeted for indexing
+* `outputFolder` - path where the resulting index will be deposited
+
+
 ### Indexing ORPHANET
 
 Use `IndexORPHANET` to create an index from an existing HPO version:

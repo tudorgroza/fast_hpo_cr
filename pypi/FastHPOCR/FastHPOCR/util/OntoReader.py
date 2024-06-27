@@ -23,8 +23,11 @@ class OntoReader:
     superClasses = {}
     allSuperClasses = {}
 
-    def __init__(self, ontoFile):
+    exclusiveURIScheme = None
+
+    def __init__(self, ontoFile, exclusiveURIScheme=None):
         self.ontology = Ontology(ontoFile)
+        self.exclusiveURIScheme = exclusiveURIScheme
         self.parseOntology()
 
     def formatURI(self, termId):
@@ -43,11 +46,19 @@ class OntoReader:
         for el in self.ontology.terms():
             if not el.name:
                 continue
+            if self.exclusiveURIScheme:
+                if not el.id.lower().startswith(self.exclusiveURIScheme.lower()):
+                    continue
             if el.obsolete:
-                replacementId = el.id
-                for idd in el.replaced_by:
-                    replacementId = idd.id
-                    break
+                replacementId = None
+                try:
+                    for idd in el.replaced_by:
+                        replacementId = idd.id
+                        break
+                except:
+                    pass
+                if not replacementId:
+                    continue
                 self.reverse_alt_ids[el.id] = replacementId
                 synList = []
                 if replacementId in self.synonyms:
