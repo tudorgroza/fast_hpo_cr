@@ -1,6 +1,7 @@
 from pronto import Ontology
 
 from FastHPOCR.util.CRConstants import PHENOTYPIC_ABNORMALITY
+from tqdm import tqdm
 
 SYN_SCOPE_EXACT = 'EXACT'
 SYN_SCOPE_RELATED = 'RELATED'
@@ -43,7 +44,7 @@ class OntoReader:
     def parseOntology(self):
         count = 0
 
-        for el in self.ontology.terms():
+        for el in tqdm(self.ontology.terms(), desc='Parsing Ontology'):
             if not el.name:
                 continue
             if self.exclusiveURIScheme:
@@ -132,7 +133,7 @@ class OntoReader:
                 allSuperClsList.append(superClsUri)
             self.allSuperClasses[el.id] = allSuperClsList
 
-        for el in self.ontology.terms():
+        for el in tqdm(self.ontology.terms(), desc='Parsing Ontology (top level categories)'):
             top_list = []
             for superCls in el.superclasses(with_self=False).to_set():
                 superClsUri = self.formatURI(superCls.id)

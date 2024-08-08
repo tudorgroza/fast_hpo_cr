@@ -2,6 +2,7 @@ import json
 
 from FastHPOCR.util import ContentUtil
 from FastHPOCR.util.CRConstants import NULL
+from tqdm import tqdm
 
 
 class CRIndexKB:
@@ -32,7 +33,7 @@ class CRIndexKB:
             clusterId = self.invertedClusters[el]
             self.clusters[clusterId] = [el]
 
-        for clusterId in self.clusters:
+        for clusterId in tqdm(self.clusters, desc='Preparing clusters'):
             actualList = self.compileClusterList(clusterId, baseClusters)
             for el in self.clusters[clusterId]:
                 if not el in actualList:
