@@ -1,4 +1,5 @@
 import json
+import gzip
 
 from FastHPOCR.util import ContentUtil
 from FastHPOCR.util.CRConstants import NULL
@@ -61,8 +62,14 @@ class CRIndexKB:
         self.catDictionary = catDictionary
 
     def load(self, crIndexKBFile):
-        with open(crIndexKBFile, 'r') as fh:
-            crData = json.load(fh)
+        try:
+            # Try to open as gzip first
+            with gzip.open(crIndexKBFile, 'rt') as fh:
+                crData = json.load(fh)
+        except gzip.BadGzipFile:
+            # If not gzipped, open normally
+            with open(crIndexKBFile, 'r') as fh:
+                crData = json.load(fh)
 
         self.clusters = crData['clusters']
         for clusterId in self.clusters:
@@ -128,7 +135,7 @@ class CRIndexKB:
             })
         return result
 
-    def serialize(self, fileOut, baseClusters):
+    def serialize(self, fileOut, baseClusters, compress=False):
         self.prepareClustersToSerialise(baseClusters)
 
         data = {
@@ -138,8 +145,12 @@ class CRIndexKB:
         if self.catDictionary:
             data['catDictionary'] = self.catDictionary
 
-        with open(fileOut, 'w') as fh:
-            json.dump(data, fh, sort_keys=True, indent=4)
+        if compress:
+            with gzip.open(fileOut, 'wt') as fh:
+                json.dump(data, fh, sort_keys=True, indent=4)
+        else:
+            with open(fileOut, 'w') as fh:
+                json.dump(data, fh, sort_keys=True, indent=4)
 
     def getClusterId(self, token):
         if token in self.invertedClusters:

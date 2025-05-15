@@ -57,7 +57,12 @@ class IndexHPO:
         print(' - Serializing index ...')
         self.crIndexKB.setHPOIndex(termsToIndex)
         self.crIndexKB.setCatDictionary(catDictionary)
-        self.crIndexKB.serialize(join(self.outputFolder, HP_INDEX_FILE), self.clusters)
+        
+        compress = bool(self.indexConfig.get(ConfigConstants.VAR_COMPRESS_INDEX, False))
+        filename = HP_INDEX_FILE + ('.gz' if compress else '')
+        file_path = join(self.outputFolder, filename)
+            
+        self.crIndexKB.serialize(file_path, self.clusters, compress=compress)
         end = time.time()
         print(' - HPO index created in {}s'.format(round(end - start, 2)))
 
