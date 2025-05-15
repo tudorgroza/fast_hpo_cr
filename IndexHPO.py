@@ -30,7 +30,6 @@ class IndexHPO:
         self.valid = False
         self.crIndexKB = CRIndexKB()
         self.externalSynonyms = {}
-        print(f'### CONFIG: {self.indexConfig} ###')
 
     def index(self):
         start = time.time()
@@ -39,9 +38,6 @@ class IndexHPO:
             return
 
         self.loadPrerequisites()
-
-        print(f'### CONFIG from index function: {self.indexConfig} ###')
-
         print(' - Preprocessing HPO terms ...')
         preprocessHPOTerms = PreprocessHPOTerms(self.hpoLocation,
                                                 externalSynonyms=self.externalSynonyms,
