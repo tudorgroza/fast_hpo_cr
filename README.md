@@ -25,7 +25,8 @@ indexConfig = {
     'rootConcepts': ['HP:0001574', 'HP:0000478', 'HP:0000598', 'HP:0000707', 'HP:0000119']
     'allow3LetterAcronyms': True | False,
     'includeTopLevelCategory': True | False,
-    'allowDuplicateEntries': True | False
+    'allowDuplicateEntries': True | False,
+    'compressIndex': True | False
 }
 ```
 where:
@@ -33,6 +34,7 @@ where:
 * `allow3LetterAcronyms` - 3 letter acronyms can lead to false positives due to their lexical ambiguity. This option enables their inclusion in the set of tokens associated with concepts. 
 * `includeTopLevelCategory` - add extra information to all concepts indexed for text mining
 * `allowDuplicateEntries` - allows for duplicated labels / synonyms to be indexed.
+* `compressIndex` - enables gzip compression of the index file to reduce storage size.
 
 Use `IndexHPO` to create an index from an existing HPO version:
 ```python
@@ -52,7 +54,8 @@ indexConfig = {
     'rootConcepts': ['SCTID:64572001']
     'allow3LetterAcronyms': True | False,
     'includeTopLevelCategory': True | False,
-    'allowDuplicateEntries': True | False
+    'allowDuplicateEntries': True | False,
+    'compressIndex': True | False
 }
 ```
 where:
@@ -60,6 +63,7 @@ where:
 * `allow3LetterAcronyms` (*optional*) - 3 letter acronyms can lead to false positives due to their lexical ambiguity. This option enables their inclusion in the set of tokens associated with concepts. 
 * `includeTopLevelCategory` (*optional*) - add extra information to all concepts indexed for text mining
 * `allowDuplicateEntries` (*optional*) - allows for duplicated labels / synonyms to be indexed.
+* `compressIndex` (*optional*) - enables gzip compression of the index file to reduce storage size.
 
 Use `IndexSNOMED` to create an index from an existing SNOMED version using a given root concept:
 ```python
@@ -81,12 +85,14 @@ Optional index configuration:
 ```python
 indexConfig = {
     'allow3LetterAcronyms': True | False,
-    'allowDuplicateEntries': True | False
+    'allowDuplicateEntries': True | False,
+    'compressIndex': True | False
 }
 ```
 where:
 * `allow3LetterAcronyms` - 3 letter acronyms can lead to false positives due to their lexical ambiguity. This option enables their inclusion in the set of tokens associated with concepts. 
 * `allowDuplicateEntries` - allows for duplicated labels / synonyms to be indexed.
+* `compressIndex` - enables gzip compression of the index file to reduce storage size.
 
 Use `IndexMONDO` to create an index from an existing HPO version:
 ```python
@@ -129,4 +135,5 @@ Use `HPOAnnotator`
     hpoAnnotator.serialize(annotations, <outFileName>, includeCategoriesIfPresent=True)
 ```
 where:
+* `indexLocation` - path to the index file (can be either compressed with gzip or uncompressed)
 * `includeCategoriesIfPresent` - can be set to `True | False` if additional information on the concepts should be provided (if this was originally included in the index via `includeTopLevelCategory` in `indexConfig`)
